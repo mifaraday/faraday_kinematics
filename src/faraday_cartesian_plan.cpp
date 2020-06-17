@@ -346,6 +346,40 @@ static trajectory_msgs::JointTrajectory testBigTiltAngle()
 
 }
 
+// 在U5（0， 0， 234）处实现自旋转运动
+std::vector<FaradayPose> selfRotation(const double theta)
+{
+	std::vector<FaradayPose> pts;	
+
+	for(int i = 0; i <= 360; i++)
+	{
+		double phi =  2.0 * M_PI * i / 360.0;
+		double x = std::sin(phi) * std::sin(theta) * 76.0;
+		double y = -std::cos(phi) * std::sin(theta) * 76.0;
+		double z = 234.0 + std::cos(theta) * 76.0;
+		double roll = std::asin(std::sin(theta) * cos(phi));
+		double pitch = std::atan(std::tan(theta) * sin(phi));
+		FaradayPose pose(x, y, z, roll, pitch);
+
+		pts.push_back(pose);
+	}
+
+	return pts;
+}
+// 注意这个运动目前还没有从机床初始状态形成连续轨迹
+static trajectory_msgs::JointTrajectory testSelfRotation()
+{
+    trajectory_msgs::JointTrajectory traj;
+    populateHeader(traj.header);
+
+
+    TrajPointVec vec=toTrajPoints(selfRotation(M_PI/6), 10.0);
+
+	traj.points=vec;
+
+    return traj;
+}
+
 
 int main(int argc, char **argv)
 {
@@ -356,11 +390,13 @@ int main(int argc, char **argv)
     
 //    trajectory_msgs::JointTrajectory traj=makeCircleTrajectory();
 
-    trajectory_msgs::JointTrajectory traj=toHomeCircleTrajectory();
+    // trajectory_msgs::JointTrajectory traj=toHomeCircleTrajectory();
 
 //     trajectory_msgs::JointTrajectory traj=makeFixedPositionMotionTrajectory();
 
 //    trajectory_msgs::JointTrajectory traj=testBigTiltAngle();
+
+	trajectory_msgs::JointTrajectory traj=testSelfRotation();
 
     std::vector<std::string> names;
     names.push_back("joint_1");
